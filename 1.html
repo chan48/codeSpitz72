@@ -26,18 +26,18 @@ const Node = class{
 		if(!display) this.offsetParent = null;
 		else if(display.style.position != 'static') this.offsetParent = display;
 	}
-	measure(parent){throw 'must be overrieded';}
-	render(parent){throw 'must be overrieded';}
+	reflow(parent){throw 'must be overrieded';}
+	repaint(parent){throw 'must be overrieded';}
 };
 const TerminalNode = class extends Node{
-	measure(parent){
+	reflow(parent){
 		return {w:this._contentWidth(parent), h:this._contentHeight(parent)}
 	}
 	_contentWidth(parent){throw 'must be overrieded';}
 	_contentHeight(parent){throw 'must be overrieded';}
 };
 const TextNode = class extends TerminalNode{
-	measure(parent){
+	reflow(parent){
 		return {w:this._contentWidth(parent), h:this._contentHeight(parent)}
 	}
 	_contentWidth(parent){throw 'must be overrieded';}
@@ -63,13 +63,12 @@ const ContainerNode = class extends Node{
 		if(this._children.has(display)) this._children.delete(display);
 		display.parent = null;
 	}
-	measure(parent){
+	reflow(parent){
 		let thisWidth = 0;
 		switch(this.style.display){
 		case'inline-block':case'inline':break;
 		case'block': 
 			let p = this;
-			recalc = true;
 			while(p = p.parent){
 				if(p.style.display.includes('block')){
 					if(this.style.width !== undefined){
@@ -107,10 +106,15 @@ const ContainerNode = class extends Node{
 					ySum += linHeight;
 				}
 				if(baseLineHeight === false){
-				
+					
 				}else{
-					ySum += baseLineHeight;
+					if(c instanceof TextNode){
+						ySum += baseLineHeight;
+					}else if(childH > lineHeight) ySum += childH;
+					}
+					
 				}
+				lineHeight = baseLineHeight === false ? 0 : baseLineHeight;
 			}
 			
 			if(lineHeight < childH) lineHeight = childH;
@@ -138,14 +142,8 @@ const ContainerNode = class extends Node{
 		return {w = this.offset.width, h = this.offset.height};
 		*/
 	}
-	_contentWidth(parent){
-		
-	}
-	_contentHeight(parent){
-		
-	}
 	
-	render(){
+	repaint(){
 	
 	}
 };
