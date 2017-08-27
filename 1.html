@@ -1,0 +1,155 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>CodeSpitz72 - 1</title>
+</head>
+<body style="margin:0;padding:0">
+<div style="background:#00f;width:50%;line-height:10px;font-size:50px">
+	<img src="http://goos.wiki/images/a/ab/%EC%95%84%EC%8A%A4%EB%82%981.jpeg" style="height:100px"/>
+</div>
+dssdsd
+<script>
+const is = (v, cls, msg)=>{if(!(v instanceof cls)) throw msg;};
+const Node = class{
+	constructor(){
+		this._parent = null;
+		this.offsetParent = null;
+		this.offset = {left:0, top:0, width:0, height:0};
+		this.style = Object.create(null);
+	}
+	get parent(){
+		return this._parent;
+	}
+	set parent(display){
+		this._parent = display;
+		if(!display) this.offsetParent = null;
+		else if(display.style.position != 'static') this.offsetParent = display;
+	}
+	measure(parent){throw 'must be overrieded';}
+	render(parent){throw 'must be overrieded';}
+};
+const TerminalNode = class extends Node{
+	measure(parent){
+		return {w:this._contentWidth(parent), h:this._contentHeight(parent)}
+	}
+	_contentWidth(parent){throw 'must be overrieded';}
+	_contentHeight(parent){throw 'must be overrieded';}
+};
+const TextNode = class extends TerminalNode{
+	measure(parent){
+		return {w:this._contentWidth(parent), h:this._contentHeight(parent)}
+	}
+	_contentWidth(parent){throw 'must be overrieded';}
+	_contentHeight(parent){throw 'must be overrieded';}
+};
+const ContainerNode = class extends Node{
+	constructor(){
+		super();
+		this._children = new Set;
+		[
+			['position', 'static'],
+			['display', 'block']
+		].forEach(v=>(this.style[v[0]] = v[1]));
+	}
+	appendChild(display){
+		is(display, Display, 'invalid display');
+		if(this._children.has(display)) throw 'exist child';
+		this._children.add(display);
+		display.parent = this;
+	}
+	removeChild(display){
+		is(display, Display, 'invalid display');
+		if(this._children.has(display)) this._children.delete(display);
+		display.parent = null;
+	}
+	measure(parent){
+		let thisWidth = 0;
+		switch(this.style.display){
+		case'inline-block':case'inline':break;
+		case'block': 
+			let p = this;
+			recalc = true;
+			while(p = p.parent){
+				if(p.style.display.includes('block')){
+					if(this.style.width !== undefined){
+						if(this.style.width > p.offset.width){
+							switch(p.style.overflow){
+							case undefined: case'auto': thisWidth = this.style.width; break;
+							case'hidden': thisWidth = p.offset.width; break;
+							default: throw 'invalid overflow';
+							}
+						}else thisWidth = this.style.width;
+					}else{
+						thisWidth = p.offset.width;
+					}
+					break;
+				}
+			}
+			if(w === undefined) throw 'no block root';
+			break;
+		default:throw 'invalid display';
+		}
+		
+		const isOverflow = !this.style.overflow || this.style.overflow == 'auto';
+		const baseLineHeight = this.style.hasOwnProperty('lineHeight') ? this.style.lineHeight : false;
+		
+		let lineHeight = baseLineHeight === false ? 0 : baseLineHeight;
+		let xSum = 0, ySum = 0, lineElement = [];
+		
+		this._children.forEach(v=>{
+			const {childW, childH} = v.measure(this);
+			switch(v.style.display){
+			case'block':
+				if(lineElement.length){ //다음줄처리
+					xSum = 0;
+					lineElement.length = 0;
+					ySum += linHeight;
+				}
+				if(baseLineHeight === false){
+				
+				}else{
+					ySum += baseLineHeight;
+				}
+			}
+			
+			if(lineHeight < childH) lineHeight = childH;
+			if(x + cw > W){//다음줄로
+				x = 0;
+				y += lh;
+			}else{
+				x += cw;
+			}
+		});
+		
+		
+		if(isOverflow){
+			//자식들의 크기가 w를 밀어낼 수 있다
+		}else{
+			//아까 w로 확정일텐데...
+		}
+		, h = 0
+		//height계산
+/*
+		let x = 0, y = 0, h = 0, lh = 0;
+		
+		
+		
+		return {w = this.offset.width, h = this.offset.height};
+		*/
+	}
+	_contentWidth(parent){
+		
+	}
+	_contentHeight(parent){
+		
+	}
+	
+	render(){
+	
+	}
+};
+
+</script>
+</body>
+</html>
