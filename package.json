@@ -1,0 +1,24 @@
+{
+  "private": true,
+  "name": "code-spitz72",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "node node_modules/http-server/bin/http-server ./",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CodeSpitz/codeSpitz72.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/CodeSpitz/codeSpitz72/issues"
+  },
+  "homepage": "https://github.com/CodeSpitz/codeSpitz72#readme",
+  "devDependencies": {
+    "http-server": "^0.10.0"
+  }
+}
