@@ -1,0 +1,148 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>CodeSpitz 72 - 3</title>
+<style></style>
+</head>
+
+<body>
+<div class="test">test</div>
+<script>
+const CSS =(_=>{
+	const Style =(_=>{
+		const prop = new Map(), prefix = 'webkit,moz,ms,chrome,o,khtml'.split(',');
+		const NONE = {};
+		let bodyStyle;
+		const getKey = k=>{
+			let key = prop.get(k);
+			if(!key){
+				if(!bodyStyle) bodyStyle = document.body.style;
+				if(k in bodyStyle) prop.set(k, key = k);
+				else if(!prefix.some(v=>{
+						const newKey = v + k[0].toUpperCase() + k.substr(1);
+						return newKey in bodyStyle ? prop.set(k, key = newKey) : false;
+					})) prop.set(k, key = NONE);
+			}
+			return key === NONE ? false : key;
+		};
+		return class{
+			constructor(style){this._style = style;}
+			set(k, v){if(k = getKey(k)) this._style[k] = v;}
+			get(k){return (k = getKey(k)) ? null : this._style[k];}
+		};
+	})();
+	const StyleRule =(_=>{
+		const trap = {
+			get(rule, k){return rule._style.get(k);},
+			set(rule, k, v){rule._style.set(k, v);}
+		};
+		return class{
+			constructor(rule){
+				this._style = new Style(rule.style);
+				return new Proxy(this, trap); 
+			}
+		};
+	})();
+	const KeyFramesRule = class{
+		constructor(rule){
+			this._keyframe = rule;
+			this._rules = new WeakMap();
+		}
+		add(selector, index = -1){
+			const keyframe = this._keyframe, rules = keyframe.cssRules;
+			keyframe.appendRule(`${selector}{}`);
+			const rule = rules[rules.length - 1];
+			const ret = new StyleRule(rule);
+			this._rules.set(rule, ret);
+			return ret;
+		}
+		remove(key = null){
+			const keyframe = this._keyframe, rules = keyframe.cssRules, map = this._rules; 
+			if(key === null){
+				let i = rules.length;
+				while(i--) keyframe.deleteRule(i);
+			}else switch(typeof key){
+				case'number': keyframe.deleteRule(i); break;
+				case'string':
+					let i = rules.length;
+					while(i--) if(rules[i].selectorText == key){
+						map.delete(rules[i]);
+						keyframe.deleteRule(i);
+					}
+					break;
+			}
+		}
+	};	
+	const keyframes =(_=>{
+		const key = {KEYFRAME_RULE:'@keyframes', WEBKIT_KEYFRAME_RULE:'@-webkit-keyframes',	MOZ_KEYFRAME_RULE:'@-moz-keyframes'};
+		for(const k in key) if(CSSRule[k]) return key[k];
+	})();
+	return class{
+		constructor(sheet){
+			this._sheet = sheet;
+			this._rules = new WeakMap(); 
+		}
+		add(selector, index = -1){
+			const sheet = this._sheet, rules = sheet.cssRules;
+			if(index == -1) index = rules.length;
+			if(selector[0] == '@') switch(true){
+				case selector.startsWith('@keyframes'):
+					if(!keyframes) return;
+					selector = selector.split(' ');
+					selector[0] = keyframes;
+					selector = selector.join(' ');
+					const rule = rules[sheet.insertRule(`${selector}{}`, index)];
+					const ret = new KeyFramesRule(rule);
+					this._rules.set(rule, ret);
+					return ret;
+			}else{
+				const rule = rules[sheet.insertRule(`${selector}{}`, index)];
+				const ret = new StyleRule(rule);
+				this._rules.set(rule, ret);
+				return ret;
+			}
+		}
+		remove(key = null){
+			const sheet = this._sheet, rules = sheet.cssRules, map = this._rules;
+			if(key === null){
+				let i = rules.length;
+				while(i--) sheet.deleteRule(i);
+			}else switch(typeof key){
+				case'number': sheet.deleteRule(i); break;
+				case'string':
+					let i = rules.length;
+					while(i--) if(rules[i].selectorText == key){
+						map.delete(rules[i]);
+						sheet.deleteRule(i);
+					}
+					break;
+			}
+		}
+		get(key){
+			const sheet = this._sheet, rules = sheet.cssRules;
+			switch(typeof key){
+			case'number':return this._rules.get(rules[key]);
+			case'string':return Array.from(rules)
+									.filter(r=>r.selectorText == key)
+									.map(r=>this._rules.get(r));
+			}
+		}
+	};
+})();
+
+const css = new CSS(document.styleSheets[0]);
+const bodyRule = css.add('body');
+bodyRule.background = '#f00';
+css.add('.test').cssText = 'width:200px;border:1px solid #fff;color:#fff;line-height:40px;text-align:center';
+const test = css.get('.test')[0];
+test.background = 'rgba(255, 255, 255, 0.5)';
+const keyframeRule = css.add('@keyframes ani');
+const from = keyframeRule.add('from');
+const to = keyframeRule.add('to');
+from.marginLeft = 0;
+to.marginLeft = '200px';
+test.animation = 'ani 2s linear infinite';
+</script>
+</body>
+</html>
